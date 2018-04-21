@@ -1,4 +1,4 @@
-package aman.filemanager.rest;
+package aman.filemanager.controllers;
 
 import aman.filemanager.data.FileSystemRestResponse;
 import aman.filemanager.data.constants.HttpResponseCodes;
@@ -7,17 +7,15 @@ import aman.filemanager.service.FileSystemService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 
 @RestController
 @RequestMapping(path = "/fileSystem", produces = MediaType.APPLICATION_JSON)
-public class FileSystemRestService {
+public class FileSystemRestController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemRestService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemRestController.class);
 
     @Autowired
     private FileSystemService fileSystemService;
