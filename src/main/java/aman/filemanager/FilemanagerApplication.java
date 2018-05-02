@@ -8,10 +8,12 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableAutoConfiguration
 @EnableConfigurationProperties(StorageProperties.class)
+@ComponentScan
 public class FilemanagerApplication {
 
 	public static void main(String[] args) {

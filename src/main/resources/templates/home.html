@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+        .row.content {height: 550px}
+
+        /* Set gray background color and 100% height */
+        .sidenav {
+            background-color: #f1f1f1;
+            height: 100%;
+        }
+
+        /* On small screens, set height to 'auto' for the grid */
+        @media screen and (max-width: 767px) {
+            .row.content {height: auto;}
+        }
+
+        /* CSS3 */
+
+        /* The whole thing */
+        .custom-menu {
+            display: none;
+            z-index: 1000;
+            position: absolute;
+            overflow: hidden;
+            border: 1px solid #CCC;
+            white-space: nowrap;
+            font-family: sans-serif;
+            background: #FFF;
+            color: #333;
+            border-radius: 5px;
+            padding: 0;
+        }
+
+        /* Each of the items in the list */
+        .custom-menu li {
+            padding: 8px 12px;
+            cursor: pointer;
+            list-style-type: none;
+            transition: all .3s ease;
+            user-select: none;
+        }
+
+        .custom-menu li:hover {
+            background-color: #DEF;
+        }
+    </style>
+
+    <script th:inline="javascript">
+
+        var rootElementId;
+        var browseHistory =[];
+        var position=0;
+
+        function showFiles() {
+            var uri="/fileSystem/dir/open/"+rootElementId;
+            $.ajax({url: uri,
+                    success: function(result){
+                    var value=result['result'];
+                    var html= value['html'];
+                    rootElementId=value['id'];
+
+                    $("#data").html(html);
+
+                    $(".DIRECTORY").dblclick(function(){
+                        rootElementId=this.id;
+                        showFiles();
+                    });
+
+                    $("#directoryId").val(rootElementId);
+
+                    newHistory=[];
+                    for(i=0; i<position; i++){
+                        newHistory.push(browseHistory[i]);
+                    }
+
+                    browseHistory=[];
+                    Array.prototype.push.apply(browseHistory,newHistory);
+                    browseHistory.push(rootElementId);
+                    position++;
+                }});
+        }
+
+        $(document).ready(function(){
+            rootElementId= [[${directoryId}]]
+            showFiles();
+        });
+
+        // Trigger action when the contexmenu is about to be shown
+        $(document).bind("contextmenu", function (event) {
+
+            // Avoid the real one
+            event.preventDefault();
+
+            // Show contextmenu
+
+            if (event.target.classList.contains("file-system-element")  || $(event.target).parents(".file-system-element").length) {
+                $("#object-menu").finish().toggle(100).
+                css({
+                    top: event.pageY + "px",
+                    left: event.pageX + "px"
+                });
+            } else {
+                $("#system-menu").finish().toggle(100).
+                css({
+                    top: event.pageY + "px",
+                    left: event.pageX + "px"
+                });
+            }
+
+
+            // In the right position (the mouse)
+            css({
+                top: event.pageY + "px",
+                left: event.pageX + "px"
+            });
+        });
+
+
+        // If the document is clicked somewhere
+        $(document).bind("mousedown", function (e) {
+            // If the clicked element is not the menu , hide it
+            if (!$(e.target).parents("#system-menu").length > 0) {
+                $("#system-menu").hide(100);
+            }
+
+            if (!$(e.target).parents("#object-menu").length > 0) {
+                $("#object-menu").hide(100);
+            }
+        });
+
+        function showTargetModal(targetModal) {
+            $("#"+targetModal).modal();
+            $("#system-menu").hide(100);
+        }
+
+
+        function createFolder() {
+                $.ajax({
+                    type: "POST",
+                    url: "/fileSystem/dir/create",
+                    data: $('#folder-form').serialize()+"&parentDirectoryId="+rootElementId,
+                    success: function (response) {
+                        $("#folder-modal").modal('toggle');
+                        showFiles();
+                    },
+                    error: function () {
+                        alert('Error');
+                    }
+                });
+                return false;
+            }
+
+    </script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row content">
+        <br>
+
+        <div class="col-sm-12">
+            <div id ="data" class="row">
+                <!-- data is inserted here-->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Create folder Modal -->
+<div class="modal fade" id="folder-modal" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Create New Folder</h4>
+            </div>
+            <form method="post" action="/fileSystem/dir/create" id="folder-form">
+            <div class="modal-body">
+                <input type="text" class="form-control" name="directoryName" required="required" placeholder="Enter Directory Name"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" onclick="createFolder()">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--File Upload Modal -->
+<div class="modal fade" id="file-modal" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Upload File</h4>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="/upload/">
+                <div class="modal-body">
+                    <input type="file" class="form-control-file" name="file" placeholder="Select File"/>
+                    <input type="hidden" name="directoryId" value="" id="directoryId"/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default">Upload</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<ul class='custom-menu' id="system-menu">
+    <li onclick="showTargetModal('file-modal')">Upload File</li>
+    <li onclick="showTargetModal('folder-modal')">Create New folder</li>
+</ul>
+
+<ul class='custom-menu'id="object-menu">
+    <li onclick="showTargetModal('file-modal')">Open</li>
+    <li onclick="showTargetModal('folder-modal')">Delete</li>
+</ul>
+
+</body>
+</html>

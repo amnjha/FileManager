@@ -8,10 +8,10 @@ import aman.filemanager.service.FileSystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class FileSystemServiceImpl implements FileSystemService {
@@ -42,6 +42,24 @@ public class FileSystemServiceImpl implements FileSystemService {
         }
         else
             throw new SystemExcpetion("Parent Directory not found for id : "+ parentDirectoryId);
+    }
+
+    @Override
+    public FileSystemObject addOrUpdateFile(String fileName, String parentDirectoryId) throws FileNotFoundException {
+        FileSystemObject parent= repository.findById(parentDirectoryId).get();
+        if (parent==null || !ObjectType.DIRECTORY.equals(parent.getType()))
+            throw new FileNotFoundException("Given directory not found");
+
+        FileSystemObject file= new FileSystemObject();
+        file.setName(fileName);
+        file.setType(ObjectType.FILE);
+
+        repository.save(file);
+
+        parent.getChildObjects().add(file);
+        repository.save(parent);
+
+        return file;
     }
 
     @Override

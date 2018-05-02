@@ -3,9 +3,12 @@ package aman.filemanager.controllers;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
+import aman.filemanager.data.FileSystemObject;
 import aman.filemanager.exceptions.StorageFileNotFoundException;
 import aman.filemanager.exceptions.SystemExcpetion;
+import aman.filemanager.service.FileSystemService;
 import aman.filemanager.service.StorageService;
+import aman.filemanager.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,10 +26,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class FileUploadController {
 
     private final StorageService storageService;
+    private final FileSystemService fileSystemService;
 
     @Autowired
-    public FileUploadController(StorageService storageService) {
+    public FileUploadController(StorageService storageService, FileSystemService fileSystemService) {
         this.storageService = storageService;
+        this.fileSystemService=fileSystemService;
     }
 
     @GetMapping("/")
@@ -50,14 +55,21 @@ public class FileUploadController {
     }
 
     @PostMapping("/")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file,
-            RedirectAttributes redirectAttributes) {
-
-        storageService.store(file);
-        redirectAttributes.addFlashAttribute("message",
-                "You successfully uploaded " + file.getOriginalFilename() + "!");
-
-        return "redirect:/upload/";
+    public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam String directoryId,
+            RedirectAttributes redirectAttributes) throws SystemExcpetion {
+        try
+        {
+            FileSystemObject fileSystemObject =fileSystemService.addOrUpdateFile(file.getOriginalFilename(), directoryId);
+            storageService.store(file, fileSystemObject.getId()+ CommonUtils.getFileExtensionIfExists(file.getOriginalFilename()));
+            redirectAttributes.addFlashAttribute("message",
+                    "You successfully uploaded " + file.getOriginalFilename() + "!");
+            redirectAttributes.addAttribute("directoryId", directoryId);
+        }
+        catch (Exception e)
+        {
+            throw new SystemExcpetion(e);
+        }
+        return "redirect:/home/";
     }
 
     @ExceptionHandler(SystemExcpetion.class)
