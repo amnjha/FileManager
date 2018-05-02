@@ -1,5 +1,6 @@
 package aman.filemanager.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -92,6 +93,22 @@ public class FileSystemStorageService implements StorageService {
             }
         }
         catch (MalformedURLException e) {
+            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+        }
+    }
+
+    @Override
+    public boolean delete(String filename) {
+        try {
+            Path file = load(filename);
+            File fileOb= file.toFile();
+            if(fileOb.exists())
+                return fileOb.delete();
+            else {
+                throw new StorageFileNotFoundException("Could not read file: " + filename);
+            }
+        }
+        catch (Exception e) {
             throw new StorageFileNotFoundException("Could not read file: " + filename, e);
         }
     }

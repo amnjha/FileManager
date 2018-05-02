@@ -4,7 +4,10 @@ import aman.filemanager.data.FileSystemObject;
 import aman.filemanager.data.ObjectType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HTMLElementUtils {
 
@@ -15,6 +18,8 @@ public class HTMLElementUtils {
 
     public static String buildFileSystemDiveElement(List<FileSystemObject> fileSystemObjects){
         StringBuilder result= new StringBuilder();
+
+        fileSystemObjects=fileSystemObjects.stream().sorted(Comparator.comparing(e->e.getName().toLowerCase())).collect(Collectors.toList());
 
         List<String> folderList = new ArrayList<>();
         List<String> fileList = new ArrayList<>();

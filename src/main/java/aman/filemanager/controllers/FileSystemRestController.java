@@ -4,6 +4,8 @@ import aman.filemanager.data.FileSystemRestResponse;
 import aman.filemanager.data.constants.HttpResponseCodes;
 import aman.filemanager.exceptions.SystemExcpetion;
 import aman.filemanager.service.FileSystemService;
+import aman.filemanager.service.StorageService;
+import aman.filemanager.utils.CommonUtils;
 import aman.filemanager.utils.HTMLElementUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,8 @@ public class FileSystemRestController {
 
     @Autowired
     private FileSystemService fileSystemService;
+    @Autowired
+    private StorageService storageService;
 
     @RequestMapping(path = "/dir/open/{directoryId}", method = RequestMethod.GET)
     public FileSystemRestResponse openDirectory(@PathVariable("directoryId") String directoryId) {
@@ -50,18 +54,34 @@ public class FileSystemRestController {
         return restResponse;
     }
 
-    @RequestMapping(path = "/dir/delete", method = RequestMethod.DELETE)
-    public FileSystemRestResponse deleteDirectory(@RequestParam("id") String directoryId) throws SystemExcpetion {
+    @RequestMapping(path = "/file/delete", method = RequestMethod.DELETE)
+    public FileSystemRestResponse deleteDirectory(@RequestParam("id") String fileId, @RequestParam String fileName) throws SystemExcpetion {
 
        FileSystemRestResponse restResponse = new FileSystemRestResponse();
        try {
            restResponse.setResponseCode(HttpResponseCodes.SUCCESS);
            restResponse.setStatus(true);
            restResponse.setMessage("Done!");
-           fileSystemService.delete(directoryId);
+           fileSystemService.delete(fileId);
+           storageService.delete(fileId+ CommonUtils.getFileExtensionIfExists(fileName));
        }catch (Exception e){
            throw new SystemExcpetion(e);
        }
+        return restResponse;
+    }
+
+    @RequestMapping(path = "/dir/delete", method = RequestMethod.DELETE)
+    public FileSystemRestResponse deleteFile(@RequestParam("id") String directoryId) throws SystemExcpetion {
+
+        FileSystemRestResponse restResponse = new FileSystemRestResponse();
+        try {
+            restResponse.setResponseCode(HttpResponseCodes.SUCCESS);
+            restResponse.setStatus(true);
+            restResponse.setMessage("Done!");
+            fileSystemService.delete(directoryId);
+        }catch (Exception e){
+            throw new SystemExcpetion(e);
+        }
         return restResponse;
     }
 

@@ -162,6 +162,15 @@
             showFiles();
         }
 
+        $(document).ready(function(){
+            $('#dir-name').on('keyup keypress', function(e) {
+                var keyCode = e.keyCode || e.which;
+                if (keyCode === 13) {
+                    e.preventDefault();
+                }
+            });
+        });
+
         function showFiles(changeHistory) {
             var uri="/fileSystem/dir/open/"+rootElementId;
             $.ajax({url: uri,
@@ -211,13 +220,14 @@
             {
                 objectType = (event.target.classList.contains("DIRECTORY") || $(event.target).parents(".DIRECTORY").length > 0) ? "DIRECTORY" : "FILE";
 
-                var deleteFunction = "deleteObject('" + event.target.id + "','" + objectType + "')";
+                var event_target = event.target;
+                var fileName= event_target.getAttribute('value');
+                var deleteFunction = "deleteObject('" + event.target.id + "','" + objectType + "','"+ fileName+"')";
 
                 document.getElementById("delete").setAttribute("onclick", deleteFunction);
 
-                var event_target = event.target;
                 if(objectType=="FILE") {
-                    document.getElementById('open').innerHTML = '<a id="download" href="'+"/upload/files/"+event_target.id+"?fileName="+event_target.getAttribute('value')+'" target="_blank">Download</a>';
+                    document.getElementById('open').innerHTML = '<a id="download" href="'+"/upload/files/"+event_target.id+"?fileName="+fileName+'" target="_blank">Download</a>';
                 }else {
                     document.getElementById('open').innerHTML = "Open";
                     document.getElementById('open').setAttribute('onclick',"openFunction('"+event_target.id+"')");
@@ -260,7 +270,7 @@
             $("#system-menu").hide(100);
         }
 
-        function deleteObject(id, type) {
+        function deleteObject(id, type, fileName) {
             $("#object-menu").hide();
 
             var conf= confirm("Are you sure you want to delete this?");
@@ -269,12 +279,12 @@
 
             ;
             if(type== 'DIRECTORY')
-                var uri="/fileSystem/dir/delete";
+                var uri="/fileSystem/dir/delete?";
             else
-                var uri="/fileSystem/file/delete";
+                var uri="/fileSystem/file/delete?fileName="+fileName+"&";
             $.ajax(
                 {
-                    url: uri+"?id="+id,
+                    url: uri+"id="+id,
                     type: 'DELETE',
                     success: function(result)
                     {
@@ -341,10 +351,10 @@
             </div>
             <form method="post" action="/fileSystem/dir/create" id="folder-form">
             <div class="modal-body">
-                <input type="text" class="form-control" name="directoryName" required="required" placeholder="Enter Directory Name"/>
+                <input type="text" class="form-control" name="directoryName" required="required" placeholder="Enter Directory Name" id="dir-name"/>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" onclick="createFolder()">Create</button>
+                <button type="button" class="btn btn-default" onclick="createFolder()" id="create-button">Create</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
             </form>
