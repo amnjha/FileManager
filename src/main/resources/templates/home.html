@@ -8,6 +8,70 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style>
+
+        .btn-arrow-right,
+        .btn-arrow-left {
+            position: relative;
+            padding-left: 18px;
+            padding-right: 18px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        .btn-arrow-right {
+            padding-left: 36px;
+        }
+        .btn-arrow-left {
+            padding-right: 36px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after,
+        .btn-arrow-left:before,
+        .btn-arrow-left:after { /* make two squares (before and after), looking similar to the button */
+            content:"";
+            position: absolute;
+            top: 5px; /* move it down because of rounded corners */
+            width: 22px; /* same as height */
+            height: 22px; /* button_outer_height / sqrt(2) */
+            background: inherit; /* use parent background */
+            border: inherit; /* use parent border */
+            border-left-color: transparent; /* hide left border */
+            border-bottom-color: transparent; /* hide bottom border */
+            border-radius: 0px 4px 0px 0px; /* round arrow corner, the shorthand property doesn't accept "inherit" so it is set to 4px */
+            -webkit-border-radius: 0px 4px 0px 0px;
+            -moz-border-radius: 0px 4px 0px 0px;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-right:after {
+            transform: rotate(45deg); /* rotate right arrow squares 45 deg to point right */
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+        }
+        .btn-arrow-left:before,
+        .btn-arrow-left:after {
+            transform: rotate(225deg); /* rotate left arrow squares 225 deg to point left */
+            -webkit-transform: rotate(225deg);
+            -moz-transform: rotate(225deg);
+            -o-transform: rotate(225deg);
+            -ms-transform: rotate(225deg);
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:before { /* align the "before" square to the left */
+            left: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:after { /* align the "after" square to the right */
+            right: -11px;
+        }
+        .btn-arrow-right:after,
+        .btn-arrow-left:before { /* bring arrow pointers to front */
+            z-index: 1;
+        }
+        .btn-arrow-right:before,
+        .btn-arrow-left:after { /* hide arrow tails background */
+            background-color: white;
+        }
         /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
         .row.content {height: 550px}
 
@@ -57,9 +121,48 @@
 
         var rootElementId;
         var browseHistory =[];
-        var position=0;
+        var position=-1;
 
-        function showFiles() {
+        //On Browser back button
+        $(window).on('popstate', function(event) {
+            event.preventDefault();
+            backFunction();
+        });
+
+        //On browser front button
+        $(window).on('pushstate', function(event) {
+            event.preventDefault();
+            forwardFunction();
+        });
+
+        function backFunction(){
+            if(position>0)
+            {
+                rootElementId=browseHistory[--position];
+                showFiles(false);
+            }
+            else{
+                alert("No More History!!");
+            }
+        }
+        
+        function forwardFunction() {
+            if(position<browseHistory.length-1)
+            {
+                rootElementId=browseHistory[++position];
+                showFiles(false);
+            }
+            else{
+                alert("No More History!!");
+            }
+        }
+
+        function goHome() {
+            rootElementId=[[${directoryId}]]
+            showFiles();
+        }
+
+        function showFiles(changeHistory) {
             var uri="/fileSystem/dir/open/"+rootElementId;
             $.ajax({url: uri,
                     success: function(result){
@@ -76,21 +179,23 @@
 
                     $("#directoryId").val(rootElementId);
 
-                    newHistory=[];
-                    for(i=0; i<position; i++){
-                        newHistory.push(browseHistory[i]);
-                    }
+                    if(changeHistory!=false) {
+                        position++;
+                        newHistory = [];
+                        for (i = 0; i < position; i++) {
+                            newHistory.push(browseHistory[i]);
+                        }
 
-                    browseHistory=[];
-                    Array.prototype.push.apply(browseHistory,newHistory);
-                    browseHistory.push(rootElementId);
-                    position++;
+                        browseHistory = [];
+                        Array.prototype.push.apply(browseHistory, newHistory);
+                        browseHistory.push(rootElementId);
+                        history.pushState({}, '');
+                    }
                 }});
         }
 
         $(document).ready(function(){
-            rootElementId= [[${directoryId}]]
-            showFiles();
+            goHome();
         });
 
         // Trigger action when the contexmenu is about to be shown
@@ -101,28 +206,42 @@
 
             // Show contextmenu
 
-            if (event.target.classList.contains("file-system-element")  || $(event.target).parents(".file-system-element").length) {
-                $("#object-menu").finish().toggle(100).
-                css({
-                    top: event.pageY + "px",
-                    left: event.pageX + "px"
-                });
-            } else {
-                $("#system-menu").finish().toggle(100).
-                css({
+            var objectType;
+            if (event.target.classList.contains("file-system-element") || $(event.target).parents(".file-system-element").length > 0)
+            {
+                objectType = (event.target.classList.contains("DIRECTORY") || $(event.target).parents(".DIRECTORY").length > 0) ? "DIRECTORY" : "FILE";
+
+                var deleteFunction = "deleteObject('" + event.target.id + "','" + objectType + "')";
+
+                document.getElementById("delete").setAttribute("onclick", deleteFunction);
+
+                var event_target = event.target;
+                if(objectType=="FILE") {
+                    document.getElementById('open').innerHTML = '<a id="download" href="'+"/upload/files/"+event_target.id+"?fileName="+event_target.getAttribute('value')+'" target="_blank">Download</a>';
+                }else {
+                    document.getElementById('open').innerHTML = "Open";
+                    document.getElementById('open').setAttribute('onclick',"openFunction('"+event_target.id+"')");
+                }
+
+                $("#object-menu").finish().toggle(100).css({
                     top: event.pageY + "px",
                     left: event.pageX + "px"
                 });
             }
-
-
-            // In the right position (the mouse)
-            css({
-                top: event.pageY + "px",
-                left: event.pageX + "px"
-            });
+            else
+            {
+                $("#system-menu").finish().toggle(100).css({
+                    top: event.pageY + "px",
+                    left: event.pageX + "px"
+                });
+            }
         });
 
+        function openFunction(id) {
+            $("#object-menu").hide(100);
+            rootElementId=id;
+            showFiles();
+        }
 
         // If the document is clicked somewhere
         $(document).bind("mousedown", function (e) {
@@ -141,6 +260,35 @@
             $("#system-menu").hide(100);
         }
 
+        function deleteObject(id, type) {
+            $("#object-menu").hide();
+
+            var conf= confirm("Are you sure you want to delete this?");
+            if(conf!==true)
+                return;
+
+            ;
+            if(type== 'DIRECTORY')
+                var uri="/fileSystem/dir/delete";
+            else
+                var uri="/fileSystem/file/delete";
+            $.ajax(
+                {
+                    url: uri+"?id="+id,
+                    type: 'DELETE',
+                    success: function(result)
+                    {
+                        alert("Deleted Successfully");
+                        showFiles();
+                    },
+                    error: function (error)
+                    {
+                        alert('Error occurred while processing!!');
+                    }
+                }
+            );
+        }
+
 
         function createFolder() {
                 $.ajax({
@@ -157,13 +305,18 @@
                 });
                 return false;
             }
-
     </script>
 </head>
 <body>
 
+
 <div class="container-fluid">
     <div class="row content">
+        <div class="text-center">
+            <button type="button" class="btn btn-info btn-arrow-left" onclick="backFunction()">Back</button>
+            <button type="button" class="btn btn-link" onclick="goHome()">Home</button>
+            <button type="button" class="btn btn-info btn-arrow-right" onclick="forwardFunction()">Forward</button>
+        </div>
         <br>
 
         <div class="col-sm-12">
@@ -229,9 +382,18 @@
 </ul>
 
 <ul class='custom-menu'id="object-menu">
-    <li onclick="showTargetModal('file-modal')">Open</li>
-    <li onclick="showTargetModal('folder-modal')">Delete</li>
+    <li id="open">Open</li>
+    <li id="delete" onclick="">Delete</li>
 </ul>
 
+<div style="padding: 40px">
+    <div class="panel panel-primary">
+        <div class="panel-heading">Help</div>
+        <div class="panel-body">
+            <li>Right Click on empty areas to create folders / upload files. </li>
+            <li>Right Click on files / folders to find other options.</li>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -29,8 +29,8 @@ public class MainController {
 
     @RequestMapping(method = RequestMethod.GET)
 
-    public String showHomeContents(Model model) {
-        model.addAttribute("directoryId", ROOT_ELEMENT);
+    public String showHomeContents(Model model, @RequestParam(defaultValue = ROOT_ELEMENT) String directoryId) {
+        model.addAttribute("directoryId", directoryId);
         return "home";
     }
 

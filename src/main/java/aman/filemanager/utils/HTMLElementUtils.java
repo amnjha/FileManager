@@ -23,7 +23,7 @@ public class HTMLElementUtils {
 
             String divString =DIV_START +" class=\"col-sm-3\" >";
                     divString+="<div class=\"well element\" id=\""+fileSystemObject.getId()+"\">";
-                    divString+="<h4 id=\""+fileSystemObject.getId()+"\" class=\""+fileSystemObject.getType()+" file-system-element\">"+"<span class= \""+iconClass+"\"> </span> "+fileSystemObject.getName()+"</h4>";
+                    divString+="<h4 id=\""+fileSystemObject.getId()+"\" class=\""+fileSystemObject.getType()+" file-system-element\" value=\""+fileSystemObject.getName()+"\">"+"<span class= \""+iconClass+"\"> </span> "+fileSystemObject.getName()+"</h4>";
                     divString+=DIV_END;
             divString+=DIV_END;
 

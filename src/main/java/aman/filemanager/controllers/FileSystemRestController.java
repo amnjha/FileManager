@@ -50,6 +50,21 @@ public class FileSystemRestController {
         return restResponse;
     }
 
+    @RequestMapping(path = "/dir/delete", method = RequestMethod.DELETE)
+    public FileSystemRestResponse deleteDirectory(@RequestParam("id") String directoryId) throws SystemExcpetion {
+
+       FileSystemRestResponse restResponse = new FileSystemRestResponse();
+       try {
+           restResponse.setResponseCode(HttpResponseCodes.SUCCESS);
+           restResponse.setStatus(true);
+           restResponse.setMessage("Done!");
+           fileSystemService.delete(directoryId);
+       }catch (Exception e){
+           throw new SystemExcpetion(e);
+       }
+        return restResponse;
+    }
+
     @RequestMapping(path = "/find/name/{name}", method = RequestMethod.GET)
     public FileSystemRestResponse findAllByName(@PathVariable("name") String name) {
         FileSystemRestResponse restResponse = new FileSystemRestResponse();

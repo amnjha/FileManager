@@ -1,6 +1,7 @@
 package aman.filemanager.controllers;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import aman.filemanager.data.FileSystemObject;
@@ -45,13 +46,14 @@ public class FileUploadController {
         return "uploadForm";
     }
 
-    @GetMapping("/files/{filename:.+}")
+    @GetMapping("/files/{fileId}")
     @ResponseBody
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-
-        Resource file = storageService.loadAsResource(filename);
+    public ResponseEntity<Resource> serveFile(@PathVariable String fileId, @RequestParam String fileName) {
+        Objects.requireNonNull(fileId);
+        Objects.requireNonNull(fileName);
+        Resource file = storageService.loadAsResource(fileId+CommonUtils.getFileExtensionIfExists(fileName));
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+                "attachment; filename=\"" + fileName + "\"").body(file);
     }
 
     @PostMapping("/")
