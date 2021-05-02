@@ -16,7 +16,7 @@ public class HTMLElementUtils {
     private static final String FOLDER_ICON="glyphicon glyphicon-folder-close";
     private static final String FILE_ICON="glyphicon glyphicon-file";
 
-    public static String buildFileSystemDiveElement(List<FileSystemObject> fileSystemObjects){
+    public static String buildFileSystemDivElement(List<FileSystemObject> fileSystemObjects){
         StringBuilder result= new StringBuilder();
 
         fileSystemObjects=fileSystemObjects.stream().sorted(Comparator.comparing(e->e.getName().toLowerCase())).collect(Collectors.toList());

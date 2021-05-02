@@ -31,7 +31,7 @@ public class FileSystemRestController {
     public FileSystemRestResponse openDirectory(@PathVariable("directoryId") String directoryId) {
         FileSystemRestResponse restResponse = new FileSystemRestResponse();
 
-        String htmlResult = HTMLElementUtils.buildFileSystemDiveElement(fileSystemService.getAllChildren(directoryId));
+        String htmlResult = HTMLElementUtils.buildFileSystemDivElement(fileSystemService.getAllChildren(directoryId));
         Map<String, Object> result= new HashMap<>();
         result.put("html", htmlResult);
         result.put("id", directoryId);

@@ -16,7 +16,7 @@ public class FileSystemObject implements Serializable {
 
     ObjectType type;
 
-    @OneToMany(targetEntity = FileSystemObject.class, cascade = CascadeType.ALL)
+    @OneToMany(targetEntity = FileSystemObject.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<FileSystemObject> childObjects;
 
     public FileSystemObject() {
