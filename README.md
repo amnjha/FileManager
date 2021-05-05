@@ -12,7 +12,6 @@ The aim is to create a google drive like software that can be hosted on local ne
   
 ### Run the following commands on the project root 
  ```
- docker build -t filemanager:latest .
  docker-compose up
  ```
  
